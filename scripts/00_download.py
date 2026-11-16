@@ -1,12 +1,14 @@
 
 # 목록 파일 읽어보기
 from pathlib import Path
+import urllib.request
+BASE_URL = "https://physionet.org/files/sleep-edfx/1.0.0/"
+RAW_DIR = Path("data/raw")
 sum_path = Path("data/reference/SHA256SUMS.txt")
 lines = sum_path.read_text().splitlines()
 
-print("전체 줄 수:, len(lines)")
-for line in lines[:5]:
-    print(line)
+print("전체 줄 수:", len(lines))
+
     
 # 필요한 파일만 골라내기 
 targets = []
@@ -22,19 +24,6 @@ print("골라낸 파일 수:", len(targets))
 for t in sorted(targets)[:6]:
     print(t)
 
-# 한 개만 시험 다운로드 
-import urllib.request
-
-BASE_URL = "https://physionet.org/files/sleep-edfx/1.0.0/"
-RAW_DIR = Path("data/raw")
-
-# test = sorted(targets)[1]
-# url = BASE_URL + test
-# dest = RAW_DIR / test.split("/")[-1]
-
-# print("받는 중:", url)
-# urllib.request.urlretrieve(url, dest)
-# print("완료:", dest, dest.stat().st_size, "bytes")
 
 # 전체 다운로드 
 
