@@ -41,5 +41,40 @@ print(df[["file_name", "subject", "night", "file_type", "record_key","name_valid
 print(df["file_type"].value_counts())
 print(df["name_valid"].value_counts())
 
-# 함수 시험: 형식이 틀린 이름을 넣으면?
-print(parse_name("sc4001e0=-psg.edf"))
+valid = df[df["name_valid"]]
+
+pair = valid.pivot_table(index="record_key", columns="file_type", aggfunc="size", fill_value=0)
+pair = pair.reindex(columns=["PSG", "Hypnogram"], fill_value=0)
+
+def judge(r):
+    if r["PSG"] > 1 or r["Hypnogram"] > 1:
+        return "중복 의심"
+    if r["PSG"] == 1 and r["Hypnogram"] ==  1:
+        return "정상"
+    if r["PSG"] == 1:
+        return "판독본 없음"
+    return "PSG 없음"
+
+pair["status"] = pair.apply(judge, axis=1)
+
+print("기록 수:", len(pair))
+print(pair["status"].value_counts())
+print(pair.head())
+
+test = pd.DataFrame(
+    {"PSG": [1, 1, 0, 2], "Hypnogram":[1, 0, 1, 1]},
+    index = ["정상이어야 함", "판독본 없음이어야 함", "PSG 없음이어야 함", "중복 의심이어야 함"],
+)
+test["status"] = test.apply(judge, axis =1)
+print(test)
+
+OUT_DIR =Path("outputs")
+OUT_DIR.mkdir(exist_ok=True)
+
+df.to_csv(OUT_DIR / "invevtory.csv", index=False, encoding="utf-8-sig")
+pair.to_csv(OUT_DIR / "pair_summary.csv", encoding="utf-8-sig")
+bad_pair = (pair["status"]!="정상").sum()
+
+bad_name = (~df["name_valid"]).sum()
+bad_pair = (pair["status"] !="정상").sum()
+print(f"[요약] 파일 {len(df)}개 / 기록 {len(pair)}건 / 형식 오류 {bad_name}개 / 짝 이상 {bad_pair}건")
